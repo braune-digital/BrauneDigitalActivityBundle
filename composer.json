@@ -1,0 +1,30 @@
+{
+    "name" : "braune-digital/activity-bundle",
+    "description" : "Activity Bundle",
+    "type" : "symfony-bundle",
+    "authors" : [{
+        "name" : "Braune Digital GmbH",
+        "email" : "mail@braune-digital.com"
+    }],
+    "keywords" : [
+        "activity bundle"
+    ],
+    "license" : [
+        "MIT"
+    ],
+    "require" : {
+    },
+    "autoload" : {
+        "psr-4" : {
+            "BrauneDigital\\ActivityBundle\\" : ""
+        }
+    },
+    "repositories" : [{
+    	
+    }],
+    "extra" : {
+    "branch-alias" : {
+            "dev-master" : "master-dev"
+        }
+    }
+}
