@@ -1,0 +1,22 @@
+services:
+    bd_activity.refresh_stream:
+        class: BrauneDigital\ActivityBundle\Services\StreamRefresh
+        arguments: [@doctrine.orm.entity_manager, @service_container]
+    sonata.admin.bd.activity:
+        class: BrauneDigital\ActivityBundle\Admin\ActivityAdmin
+        tags:
+            - { name: sonata.admin, manager_type: orm, group: "Activity", label: "Activities" }
+        arguments:
+            - ~
+            - BrauneDigital\ActivityBundle\Entity\Stream\Activity
+            - BrauneDigitalActivityBundle:ActivityCrud
+        calls:
+            - [ setTranslationDomain, [EscapegamerAppBundle]]
+    bd_activity.entityaudit.manager:
+        class: BrauneDigital\ActivityBundle\Services\AuditManager
+        arguments: [@simplethings_entityaudit.config]
+
+    bd_activity.entityaudit.reader:
+        class:  BrauneDigital\ActivityBundle\Services\AuditReader
+        factory: [@bd_activity.entityaudit.manager, createAuditReader]
+        arguments: [@doctrine.orm.default_entity_manager]

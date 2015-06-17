@@ -1,0 +1,29 @@
+bd_activity:
+    observed_classes:
+        -   name: Application\Sonata\UserBundle\Entity\User
+            fields:
+                - picture
+                - username
+                - lastLogin
+        -   name: Escapegamer\AppBundle\Entity\Event
+            fields:
+                - icon
+                - email
+        -   name: Escapegamer\AppBundle\Entity\EventTranslation
+            fields:
+                - title
+                - description
+                - url
+                - bookingUrl
+        -   name: Escapegamer\AppBundle\Entity\Operator
+            fields:
+                - title
+                - logo
+                - email
+                - url
+                - facebookUrl
+                - twitterUrl
+                - googlePlusUrl
+        -   name: Escapegamer\AppBundle\Entity\OperatorTranslation
+            fields:
+                - description

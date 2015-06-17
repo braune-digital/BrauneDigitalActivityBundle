@@ -1,0 +1,13 @@
+{% extends 'SonataAdminBundle:CRUD:base_list_field.html.twig' %}
+
+{% block field %}
+    <div>
+        {% if object.reviewState == "rejected" %}
+            <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
+        {% elseif object.reviewState == "approved" %}
+            <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+        {% else %}
+            <span class="glyphicon glyphicon-time" aria-hidden="true"></span>
+        {% endif %}
+    </div>
+{% endblock %}

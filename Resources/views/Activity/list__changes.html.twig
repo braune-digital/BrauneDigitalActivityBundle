@@ -1,0 +1,47 @@
+{% extends 'SonataAdminBundle:CRUD:base_list_field.html.twig' %}
+
+{% block field %}
+    {% set show_link %}
+        <a href="#" target="_blank">show</a>
+    {% endset %}
+
+    {% set classPath = object.observedClass|split('\\') %}
+
+    {% set class = classPath[(classPath|length)-1] %}
+
+    {% set date %}
+        {{ object.changedDate|date('d.m.Y H:i') }}
+    {% endset %}
+
+    {% set action %}
+        {% if object.baseRevisionRevType == "INS" %}
+            {% trans %}admin.activity.labels.insert{% endtrans %}
+        {% elseif object.baseRevisionRevType == "DEL" %}
+            {% trans %}admin.activity.labels.delete{% endtrans %}
+        {% else %}
+            {%- trans %}admin.activity.labels.update{% endtrans -%}
+        {% endif %}
+    {% endset %}
+
+
+    {% if object and object.user and object.user.username %}
+        {% trans with {'%name%': object.user.username, '%date%': date, '%class%': class, '%action%': action} %}admin.activity.labels.changes{% endtrans %}
+    {% else %}
+        {% trans with {'%date%': date, '%class%': class, '%action%': action} %}admin.activity.labels.changes_without_user{% endtrans %}
+    {% endif %}
+
+    {% include 'BrauneDigitalActivityBundle:Activity:list__changes_show_link.html.twig' %}
+
+    {% if object.baseRevisionRevType == "UPD" and object.changedFields %}
+        (   {%- for field in object.changedFields %}
+                {%- if loop.first == false -%}
+                ,
+                {% endif -%}
+                {{ field -}}
+            {% endfor -%})
+    {% endif -%}
+{% endblock %}
+
+{% block show_link %}
+
+{% endblock %}

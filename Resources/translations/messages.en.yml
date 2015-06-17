@@ -1,0 +1,11 @@
+#admin
+admin:
+    activity:
+        labels:
+            insert: added
+            delete: deleted
+            update: updated
+            show:   show
+            review_state: state
+            changes: User '%name%' %action% at %date%:
+            changes_without_user: %action% at %date%:

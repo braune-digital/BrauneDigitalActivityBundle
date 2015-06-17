@@ -1,0 +1,6 @@
+{% if object.reviewState != "approved" %}
+	<a class="btn btn-info btn-sm" href="{{ admin.generateObjectUrl('changeState', object, {state: "approved"}) }}">Approve</a>
+{% endif %}
+{% if object.reviewState != "rejected" %}
+    <a class="btn btn-warning btn-sm" href="{{ admin.generateObjectUrl('changeState', object, {state: "rejected"}) }}">Reject</a>
+{% endif %}
