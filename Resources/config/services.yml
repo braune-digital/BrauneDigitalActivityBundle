@@ -11,7 +11,7 @@ services:
             - BrauneDigital\ActivityBundle\Entity\Stream\Activity
             - BrauneDigitalActivityBundle:ActivityCrud
         calls:
-            - [ setTranslationDomain, [EscapegamerAppBundle]]
+            - [ setTranslationDomain, [ApplicationAppBundle]]
     bd_activity.entityaudit.manager:
         class: BrauneDigital\ActivityBundle\Services\AuditManager
         arguments: [@simplethings_entityaudit.config]

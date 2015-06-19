@@ -5,17 +5,17 @@ bd_activity:
                 - picture
                 - username
                 - lastLogin
-        -   name: Escapegamer\AppBundle\Entity\Event
+        -   name: Application\AppBundle\Entity\Offer
             fields:
                 - icon
                 - email
-        -   name: Escapegamer\AppBundle\Entity\EventTranslation
+        -   name: Application\AppBundle\Entity\OfferTranslation
             fields:
                 - title
                 - description
                 - url
                 - bookingUrl
-        -   name: Escapegamer\AppBundle\Entity\Operator
+        -   name: Application\AppBundle\Entity\Provider
             fields:
                 - title
                 - logo
@@ -24,6 +24,6 @@ bd_activity:
                 - facebookUrl
                 - twitterUrl
                 - googlePlusUrl
-        -   name: Escapegamer\AppBundle\Entity\OperatorTranslation
+        -   name: Application\AppBundle\Entity\ProviderTranslation
             fields:
                 - description
