@@ -18,7 +18,7 @@ class Configuration implements ConfigurationInterface
     public function getConfigTreeBuilder()
     {
         $$treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('bd_activity');
+        $rootNode = $treeBuilder->root('braune_digital_activity');
         $rootNode
             ->children()
                 ->arrayNode('observed_classes')
