@@ -17,8 +17,28 @@ class Configuration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder()
     {
-        $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('bd_activity');
+        $$treeBuilder = new TreeBuilder();
+        $rootNode = $treeBuilder->root('braune_digital_activity');
+        $rootNode
+            ->children()
+                ->arrayNode('observed_classes')
+                    ->prototype('array')
+                        ->children()
+                            ->scalarNode('name')
+                            ->end()
+                            ->arrayNode('fields')
+                                ->prototype('array')
+                                    ->children()
+                                        ->scalarNode('fieldName')
+                                        ->end()
+                                    ->end()
+                                ->end()
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end()
+        ;
 
         // Here you should define the parameters that are allowed to
         // configure your bundle. See the documentation linked above for
