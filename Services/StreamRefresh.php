@@ -241,6 +241,7 @@ class StreamRefresh {
         $changedFields = array();
 
         foreach($observedFields as $observedField) {
+            $observedField = $observedField['fieldName'];
             $getter = 'get'.ucwords($observedField);
 
             $sourceValue = call_user_func(array($source, $getter));
@@ -331,9 +332,7 @@ class StreamRefresh {
      * @return array
      */
     private function getObservedClasses() {
-        $yaml = Yaml::parse($this->getConfigPath());
-        $classes = array();
-        foreach($yaml['bd_activity']['observed_classes'] as $observedClass) {
+        foreach($this->getContainer()->getParameter('observed_classes') as $observedClass) {
             $classes[] = $observedClass['name'];
         }
         return $classes;
@@ -345,8 +344,7 @@ class StreamRefresh {
      * @return array
      */
     private function getFieldsForClass($className) {
-        $yaml = Yaml::parse($this->getConfigPath());
-        foreach($yaml['bd_activity']['observed_classes'] as $observedClass) {
+        foreach($this->getContainer()->getParameter('observed_classes') as $observedClass) {
             if($observedClass['name'] == $className) {
                 return $observedClass['fields'];
             }
