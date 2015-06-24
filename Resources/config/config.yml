@@ -1,29 +1,29 @@
-#bd_activity:
+#braune_digital_activity:
 #    observed_classes:
 #        -   name: Application\Sonata\UserBundle\Entity\User
 #            fields:
-#                - picture
-#                - username
-#                - lastLogin
+#                - fieldName: picture
+#                - fieldName: username
+#                - fieldName: lastLogin
 #        -   name: Application\AppBundle\Entity\Offer
 #            fields:
-#                - icon
-#                - email
+#                - fieldName: icon
+#                - fieldName: email
 #        -   name: Application\AppBundle\Entity\OfferTranslation
 #            fields:
-#                - title
-#                - description
-#                - url
-#                - bookingUrl
+#                - fieldName: title
+#                - fieldName: description
+#                - fieldName: url
+#                - fieldName: bookingUrl
 #        -   name: Application\AppBundle\Entity\Provider
 #            fields:
-#                - title
-#                - logo
-#                - email
-#                - url
-#                - facebookUrl
-#                - twitterUrl
-#                - googlePlusUrl
+#                - fieldName: title
+#                - fieldName: logo
+#                - fieldName: email
+#                - fieldName: url
+#                - fieldName: facebookUrl
+#                - fieldName: twitterUrl
+#                - fieldName: googlePlusUrl
 #        -   name: Application\AppBundle\Entity\ProviderTranslation
 #            fields:
-#                - description
+#                - fieldName: description
