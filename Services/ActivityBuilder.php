@@ -118,10 +118,12 @@ class ActivityBuilder {
             $revisions = $this->getAuditReader()->findRevisions(get_class($entity), $entity->getId());
 
             $curRev = $revisions[0];
-            $prevRev = $revisions[1];
+            if (isset($revisions[1])) {
+                $prevRev = $revisions[1];
 
-            $this->buildActivity(get_class($entity), $entity, $user, $curRev, $prevRev);
-            $this->getEM()->flush(); //save activity
+                $this->buildActivity(get_class($entity), $entity, $user, $curRev, $prevRev);
+                $this->getEM()->flush(); //save activity
+            }
         }
     }
 
