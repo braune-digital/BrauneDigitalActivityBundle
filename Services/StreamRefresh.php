@@ -35,10 +35,7 @@ class StreamRefresh {
      */
     private $streamRepository;
 
-    /*
-     * @var FOS\UserBundle\Entity\UserManager
-     */
-    private $userManager;
+
 
 
     /*
@@ -75,11 +72,12 @@ class StreamRefresh {
         $this->container = $container;
         $this->activityRepository = $em->getRepository('BrauneDigital\ActivityBundle\Entity\Stream\Activity');
         $this->streamRepository = $em->getRepository('BrauneDigital\ActivityBundle\Entity\Stream\Stream');
-        $this->userManager = $this->getContainer()->get('fos_user.user_manager');
-        $this->auditReader = $container->get("bd_activity.entityaudit.reader");
+
         $this->auditConfig = $container->get("simplethings_entityaudit.config");
         $this->mdFactory = $this->auditConfig->createMetadataFactory();
         $this->platform = $this->em->getConnection()->getDatabasePlatform();
+
+        $this->activityBuilder = $this->getContainer()->get('bd_activity.activity_builder');
     }
 
     public function setContainer (ContainerInterface $container) {
@@ -103,7 +101,7 @@ class StreamRefresh {
     public function refresh() {
         $fullBackendStream = $this->streamRepository->createOrGetFullBackendStream();
 
-        $observedClasses = $this->getObservedClasses();
+        $observedClasses = $this->activityBuilder->getObservedClasses();
 
         foreach($observedClasses as $observedClass) {
             if($this->refreshRequired($observedClass)) {
@@ -154,7 +152,8 @@ class StreamRefresh {
                     $lastRev = $currentRevision;
                 } else {
                     if(sizeof($revisions) > 1) {
-                        $this->addActivity($className, $object, $lastRev, $currentRevision);
+                        $this->activityBuilder->buildActivity($className, $object, $currentRevision, $lastRev);
+                        --$this->buildLimit;
                         $lastRev = $currentRevision;
                     }
                     $checkCreateRevision = $currentRevision;
@@ -162,134 +161,12 @@ class StreamRefresh {
             }
         }
         if($checkCreateRevision && ! $this->activityRepository->getCreateRevision($className, $object)) {
-            $this->addActivityIgnoreChanges($className, $object, $checkCreateRevision , $checkCreateRevision);
+            $this->activityBuilder->buildActivity($className, $object, $checkCreateRevision , $checkCreateRevision);
+            --$this->buildLimit;
         }
     }
 
-    private function addActivity($className, $object,$lastRev, $currentRevision) {
-        $activity = new Activity();
-        try {
-            $source = $this->auditReader->find($className, $object->getId(), $currentRevision->getRev());
-            $sourceCe = $this->pickChangedEntity($object->getId(), $this->auditReader->findEntitiesChangedAtRevision($currentRevision->getRev()));
-            $target = $this->auditReader->find($className, $object->getId(), $lastRev->getRev());
-            $targetCe = $this->pickChangedEntity($object->getId(), $this->auditReader->findEntitiesChangedAtRevision($lastRev->getRev()));
-            $changedFields = $this->getChangedFields($className, $source, $target);
 
-            $activity->setChangedFields($changedFields);
-            $activity->setObservedClass($className);
-            if(sizeof($changedFields) > 0) {
-                if (method_exists($target, 'getUsername')) {
-                    $user = $this->userManager->findUserByUsername($target->getUsername());
-                    if(!empty($user)) {
-                        $activity->setUser($user);
-                    }
-                }
-                $activity->setAuditedEntityId($object->getId());
-                $activity->setBaseRevisionId($currentRevision->getRev());
-                $activity->setBaseRevisionRevType($sourceCe->getRevisionType());
-                $activity->setChangeRevisionId($lastRev->getRev());
-                $activity->setChangeRevisionRevType($targetCe->getRevisionType());
-                $activity->setChangedDate($lastRev->getTimestamp());
-                $this->em->persist($activity);
-                if($this->buildLimit != -1 && $this->buildLimit > 0) {
-                    $this->buildLimit = --$this->buildLimit;
-                }
-            }
-        } catch(NoRevisionFoundException $e) {
-            if($this->output) {
-                $this->output->writeln("Couldn't compare: ". $currentRevision->getRev()." and ".$lastRev->getRev()." for ".$className." and obj ".$object->getId());
-            }
-        }
-    }
-
-    private function addActivityIgnoreChanges($className, $object,$lastRev, $currentRevision) {
-        $activity = new Activity();
-        try {
-            $source = $this->auditReader->find($className, $object->getId(), $currentRevision->getRev());
-            $sourceCe = $this->pickChangedEntity($object->getId(), $this->auditReader->findEntitiesChangedAtRevision($currentRevision->getRev()));
-            $target = $this->auditReader->find($className, $object->getId(), $lastRev->getRev());
-            $targetCe = $this->pickChangedEntity($object->getId(), $this->auditReader->findEntitiesChangedAtRevision($lastRev->getRev()));
-            $changedFields = $this->getChangedFields($className, $source, $target);
-
-            $activity->setChangedFields($changedFields);
-            $activity->setObservedClass($className);
-            if (method_exists($target, 'getUsername')) {
-                $user = $this->userManager->findUserByUsername($target->getUsername());
-                if(!empty($user)) {
-                    $activity->setUser($user);
-                }
-            }
-            $activity->setAuditedEntityId($object->getId());
-            $activity->setBaseRevisionId($currentRevision->getRev());
-            $activity->setBaseRevisionRevType($sourceCe->getRevisionType());
-            $activity->setChangeRevisionId($lastRev->getRev());
-            $activity->setChangeRevisionRevType($targetCe->getRevisionType());
-            $activity->setChangedDate($lastRev->getTimestamp());
-            $this->em->persist($activity);
-            if($this->buildLimit != -1 && $this->buildLimit > 0) {
-                $this->buildLimit = --$this->buildLimit;
-            }
-        } catch(NoRevisionFoundException $e) {
-            if($this->output) {
-                $this->output->writeln("Couldn't compare: ". $currentRevision->getRev()." and ".$lastRev->getRev()." for ".$className." and obj ".$object->getId());
-            }
-        }
-    }
-
-    private function getChangedFields($className, $source, $target) {
-        $observedFields = $this->getFieldsForClass($className);
-        $changedFields = array();
-
-        foreach($observedFields as $observedField) {
-            $observedField = $observedField['fieldName'];
-            $getter = 'get'.ucwords($observedField);
-
-            $sourceValue = call_user_func(array($source, $getter));
-            $targetValue = call_user_func(array($target, $getter));
-            if(is_object($sourceValue) || is_object($targetValue)) {
-                if(!is_object($sourceValue) || !is_object($targetValue)) {
-                    $changedFields[] = $observedField;
-                } else {
-					if (method_exists($sourceValue, 'getId') && method_exists($targetValue, 'getId')) {
-						if($sourceValue->getId() != $targetValue->getId()) {
-							$changedFields[] = $observedField;
-						}
-
-					}
-                }
-            } else {
-                if($sourceValue != $targetValue) {
-                    $changedFields[] = $observedField;
-                }
-            }
-        }
-
-        return $changedFields;
-    }
-
-    private function pickChangedEntity($id, $changedEntities) {
-        foreach($changedEntities as $entity) {
-            if($entity->getEntity()->getId() == $id) {
-                return $entity;
-            }
-        }
-    }
-
-    private function revisionsSorted($revisions) {
-        $lastRev = null;
-        foreach($revisions as $currentRevision) {
-            if($lastRev == null) {
-                $lastRev = $currentRevision;
-            } else {
-                if($lastRev->getRev() <= $currentRevision->getRev()) {
-                    return false;
-                } else {
-                    $lastRev = $currentRevision;
-                }
-            }
-        }
-        return true;
-    }
 
     /**
      *  Returns true if a activity refresh is required for the specified class
@@ -324,40 +201,6 @@ class StreamRefresh {
         }
 
         return null;
-    }
-
-    /**
-     * Return array of observed classnames
-     *
-     * @return array
-     */
-    private function getObservedClasses() {
-        foreach($this->getContainer()->getParameter('observed_classes') as $observedClass) {
-            $classes[] = $observedClass['name'];
-        }
-        return $classes;
-    }
-
-    /**
-     * Return array of observed classnames
-     *
-     * @return array
-     */
-    private function getFieldsForClass($className) {
-        foreach($this->getContainer()->getParameter('observed_classes') as $observedClass) {
-            if($observedClass['name'] == $className) {
-                return $observedClass['fields'];
-            }
-        }
-    }
-
-    /**
-     * Returns the full config path where the observed classes are configured
-     *
-     * @return string
-     */
-    private function getConfigPath() {
-        return __DIR__ . StreamRefresh::RELATIVE_CONFIG_PATH;
     }
 
     /**

@@ -51,7 +51,7 @@ class Activity
     /**
      * @var Application\Sonata\UserBundle\Entity\User
      *
-     * @ORM\ManyToOne(targetEntity="Application\Sonata\UserBundle\Entity\User")
+     * @ORM\ManyToOne(targetEntity="BrauneDigital\ActivityBundle\Model\UserInterface", inversedBy="activities")
      * @ORM\JoinColumn(name="user_id", referencedColumnName="id")
      **/
     private $user;
