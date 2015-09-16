@@ -102,6 +102,10 @@ class ActivityBuilder {
 
             $revisions = $this->getAuditReader()->findRevisions(get_class($entity), $entity->getId());
 
+            if (!count($revisions)) {
+                throw AuditException::noRevisionFound(get_class($entity), $entity->getId(), 'any');
+            }
+
             $curRev = $revisions[0];
 
             //build activity
@@ -117,8 +121,16 @@ class ActivityBuilder {
 
             $revisions = $this->getAuditReader()->findRevisions(get_class($entity), $entity->getId());
 
+            $size = count($revisions);
+            if (!$size) {
+                throw AuditException::noRevisionFound(get_class($entity), $entity->getId(), 'any');
+            }
+
             $curRev = $revisions[0];
-            $prevRev = $revisions[1];
+            $prevRev = null;
+            if ($size > 1) {
+                $prevRev = $revisions[1];
+            }
 
             $this->buildActivity(get_class($entity), $entity, $user, $curRev, $prevRev);
             $this->getEM()->flush(); //save activity
