@@ -102,8 +102,8 @@ class ActivityBuilder {
 
             $revisions = $this->getAuditReader()->findRevisions(get_class($entity), $entity->getId());
 
-            if (!count($revisions)) {
-                throw AuditException::noRevisionFound(get_class($entity), $entity->getId(), 'any');
+            if (!isset($revisions[0])) {
+                throw AuditException::noRevisionFound(get_class($entity), array($entity->getId()), 'any');
             }
 
             $curRev = $revisions[0];
@@ -121,14 +121,14 @@ class ActivityBuilder {
 
             $revisions = $this->getAuditReader()->findRevisions(get_class($entity), $entity->getId());
 
-            $size = count($revisions);
-            if (!$size) {
-                throw AuditException::noRevisionFound(get_class($entity), $entity->getId(), 'any');
+            if (!isset($revisions[0])) {
+                throw AuditException::noRevisionFound(get_class($entity), array($entity->getId()), 'any');
             }
 
             $curRev = $revisions[0];
             $prevRev = null;
-            if ($size > 1) {
+
+            if (isset($revisions[1])) {
                 $prevRev = $revisions[1];
             }
 
