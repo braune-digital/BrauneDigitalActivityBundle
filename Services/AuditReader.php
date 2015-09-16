@@ -30,6 +30,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\PersistentCollection;
 use Doctrine\ORM\Query;
 use BrauneDigital\ActivityBundle\Utility\AuditedCollection;
+use SimpleThings\EntityAudit\AuditException;
 use SimpleThings\EntityAudit\Exception\DeletedException;
 use SimpleThings\EntityAudit\Exception\InvalidRevisionException;
 use SimpleThings\EntityAudit\Exception\NoRevisionFoundException;
@@ -192,9 +193,7 @@ class AuditReader
      * @param int $revision
      * @param array $options
      * @return object
-     * @throws DeletedException
-     * @throws NoRevisionFoundException
-     * @throws NotAuditedException
+     * @throws AuditException
      * @throws \Doctrine\DBAL\DBALException
      */
     public function find($className, $id, $revision, array $options = array())
@@ -208,7 +207,7 @@ class AuditReader
         );
 
         if (!$this->metadataFactory->isAudited($className)) {
-            throw new NotAuditedException($className);
+            throw AuditException::notAudited($className);
         }
 
         $class = $this->em->getClassMetadata($className);
@@ -292,7 +291,7 @@ class AuditReader
 
         if (!$row) {
             if($options['threadNoRevisionsAsError']) {
-                throw new NoRevisionFoundException($class->name, $id, $revision);
+                throw AuditException::noRevisionFound($class->name, $id, $revision);
             } else {
                 return null;
             }
@@ -300,7 +299,7 @@ class AuditReader
         }
 
         if ($options['threatDeletionsAsExceptions'] && $row[$this->config->getRevisionTypeFieldName()] == 'DEL') {
-            throw new DeletedException($class->name, $id, $revision);
+            throw new \LogicException('Already deleted: '. $class->name . $id . $revision);
         }
 
         unset($row[$this->config->getRevisionTypeFieldName()]);
@@ -314,9 +313,7 @@ class AuditReader
      * @param string $className
      * @param array $data
      * @param $revision
-     * @throws DeletedException
-     * @throws NoRevisionFoundException
-     * @throws NotAuditedException
+     * @throws AuditException
      * @throws \Doctrine\DBAL\DBALException
      * @throws \Doctrine\ORM\Mapping\MappingException
      * @throws \Doctrine\ORM\ORMException
@@ -604,7 +601,7 @@ class AuditReader
      * Return the revision object for a particular revision.
      *
      * @param  int $rev
-     * @throws InvalidRevisionException
+     * @throws AuditException
      * @return Revision
      */
     public function findRevision($rev)
@@ -619,7 +616,7 @@ class AuditReader
                 $revisionsData[0]['username']
             );
         } else {
-            throw new InvalidRevisionException($rev);
+            throw AuditException::invalidRevision($rev);
         }
     }
 
@@ -628,13 +625,13 @@ class AuditReader
      *
      * @param string $className
      * @param mixed $id
-     * @throws NotAuditedException
+     * @throws AuditException
      * @return Revision[]
      */
     public function findRevisions($className, $id)
     {
         if (!$this->metadataFactory->isAudited($className)) {
-            throw new NotAuditedException($className);
+            throw AuditException::notAudited($className);
         }
 
         $class = $this->em->getClassMetadata($className);
@@ -680,13 +677,13 @@ class AuditReader
      *
      * @param string $className
      * @param mixed $id
-     * @throws NotAuditedException
+     * @throws AuditException
      * @return integer
      */
     public function getCurrentRevision($className, $id)
     {
         if (!$this->metadataFactory->isAudited($className)) {
-            throw new NotAuditedException($className);
+            throw AuditException::notAudited($className);
         }
 
         $class = $this->em->getClassMetadata($className);
@@ -769,7 +766,7 @@ class AuditReader
     public function getEntityHistory($className, $id)
     {
         if (!$this->metadataFactory->isAudited($className)) {
-            throw new NotAuditedException($className);
+            throw AuditException::notAudited($className);
         }
 
         $class = $this->em->getClassMetadata($className);
@@ -835,7 +832,7 @@ class AuditReader
     public function revisionsLargerThan($className, $id) {
 
         if (! $this->metadataFactory->isAudited($className)) {
-            throw new NotAuditedException($className);
+            throw AuditException::notAudited($className);
         }
 
         $class = $this->em->getClassMetadata($className);
@@ -862,13 +859,13 @@ class AuditReader
      *
      * @param string $className
      * @param mixed $id
-     * @throws NotAuditedException
+     * @throws AuditException
      * @return Revision[]
      */
     public function findRevisionsFrom($className, $id, $startAt)
     {
         if (!$this->metadataFactory->isAudited($className)) {
-            throw new NotAuditedException($className);
+            throw AuditException::notAudited($className);
         }
 
         $class = $this->em->getClassMetadata($className);

@@ -4,6 +4,8 @@ namespace BrauneDigital\ActivityBundle\Services;
 
 use BrauneDigital\ActivityBundle\Entity\Stream\Activity;
 use Doctrine\ORM\Event\LifecycleEventArgs;
+use SimpleThings\EntityAudit\AuditException;
+use SimpleThings\EntityAudit\Metadata\MetadataFactory;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class ActivityBuilder {
@@ -11,7 +13,6 @@ class ActivityBuilder {
     protected $container;
 
     protected $observedClasses;
-
 
     /*
      * @var SimpleThings\EntityAudit\AuditReader
@@ -28,19 +29,48 @@ class ActivityBuilder {
      */
     private $userManager;
 
+    /*
+     * @var MetadataFactory
+     */
+    protected $metadataFactory;
+
+    protected $useDoctrineSubscriber;
+
+    protected function getAuditReader() {
+        if(!$this->auditReader) {
+            $this->auditReader = $this->getContainer()->get('simplethings_entityaudit.reader');
+        }
+        return $this->auditReader;
+    }
+
+    protected function getEM() {
+        if(!$this->em) {
+            $this->em = $this->getContainer()->get('doctrine')->getEntityManager();
+        }
+        return $this->em;
+    }
+
+    protected function getUserManager(){
+        if(!$this->userManager) {
+            $this->userManager = $this->getContainer()->get('fos_user.user_manager');
+        }
+        return $this->userManager;
+    }
+
     public function __construct(ContainerInterface $container)
     {
         $this->container = $container;
 
-        $this->auditReader = $container->get("bd_activity.entityaudit.reader");
+        $this->auditConfig = $this->getContainer()->get('simplethings_entityaudit.config');
 
-        $this->em = $this->getContainer()->get('doctrine')->getEntityManager();
+        $this->metadataFactory = $this->auditConfig->createMetadataFactory();
 
-        $this->userManager = $this->getContainer()->get('fos_user.user_manager');
-
+        //load observed classes
         foreach ($this->getContainer()->getParameter('observed_classes') as $observedClass) {
             $this->observedClasses[] = $observedClass['name'];
         }
+
+        $this->useDoctrineSubscriber = $this->getContainer()->getParameter('doctrine_subscribing');
     }
 
     /**
@@ -57,34 +87,45 @@ class ActivityBuilder {
     }
 
     public function supportsEntity($entity) {
-        return in_array(get_class($entity), $this->getObservedClasses());
-    }
 
-    public function postPersist(LifecycleEventArgs $args)
-    {
-        $entity = $args->getEntity();
-        $entityManager = $args->getEntityManager();
-
-        if($this->supportsEntity($entityManager)) {
-
+        $className = get_class($entity);
+        if (!$this->metadataFactory->isAudited($className)) {
+            return false;
         }
+        return in_array($className, $this->getObservedClasses());
     }
 
-    public function postUpdate(LifecycleEventArgs $args)
+    public function persist($entity)
     {
-        $entity = $args->getEntity();
-        $entityManager = $args->getEntityManager();
+        if($this->useDoctrineSubscriber && $this->supportsEntity($entity)) {
+            $user = $this->getContainer()->get('security.token_storage')->getToken()->getUser();
 
-        $user = $this->getContainer()->get('securiy.token_storage')->getToken()->getUser();
+            $revisions = $this->getAuditReader()->findRevisions(get_class($entity), $entity->getId());
 
-        $curRev = null;
+            $curRev = $revisions[0];
 
-        if($this->supportsEntity($entity)) {
+            //build activity
             $this->buildActivity(get_class($entity), $entity, $user, $curRev);
+            $this->getEM()->flush(); //save activity
         }
     }
 
-    protected function buildActivity($className, $object, $user, $currentRevision, $lastRev = null) {
+    public function update($entity)
+    {
+        if($this->useDoctrineSubscriber && $this->supportsEntity($entity)) {
+            $user = $this->getContainer()->get('security.token_storage')->getToken()->getUser();
+
+            $revisions = $this->getAuditReader()->findRevisions(get_class($entity), $entity->getId());
+
+            $curRev = $revisions[0];
+            $prevRev = $revisions[1];
+
+            $this->buildActivity(get_class($entity), $entity, $user, $curRev, $prevRev);
+            $this->getEM()->flush(); //save activity
+        }
+    }
+
+    public function buildActivity($className, $object, $user, $currentRevision, $lastRev = null) {
         $activity = new Activity();
         try {
             $ignoreChanges = false;
@@ -92,17 +133,21 @@ class ActivityBuilder {
                 $lastRev = $currentRevision;
                 $ignoreChanges = true;
             }
-            $source = $this->auditReader->find($className, $object->getId(), $currentRevision->getRev());
-            $sourceCe = $this->pickChangedEntity($object->getId(), $this->auditReader->findEntitiesChangedAtRevision($currentRevision->getRev()));
-            $target = $this->auditReader->find($className, $object->getId(), $lastRev->getRev());
-            $targetCe = $this->pickChangedEntity($object->getId(), $this->auditReader->findEntitiesChangedAtRevision($lastRev->getRev()));
+            $source = $this->getAuditReader()->find($className, $object->getId(), $currentRevision->getRev());
+            $sourceCe = $this->pickChangedEntity($object->getId(), $this->getAuditReader()->findEntitiesChangedAtRevision($currentRevision->getRev()));
+            $target = $this->getAuditReader()->find($className, $object->getId(), $lastRev->getRev());
+            $targetCe = $this->pickChangedEntity($object->getId(), $this->getAuditReader()->findEntitiesChangedAtRevision($lastRev->getRev()));
             $changedFields = $this->getChangedFields($className, $source, $target);
 
             $activity->setChangedFields($changedFields);
             $activity->setObservedClass($className);
             if($ignoreChanges || sizeof($changedFields) > 0) {
-                if ($user == null && method_exists($target, 'getUsername')) {
-                    $user = $this->userManager->findUserByUsername($target->getUsername());
+
+                if($user != null) {
+                    $activity->setUser($user);
+                }
+                else if (method_exists($target, 'getUsername')) {
+                    $user = $this->getUserManager()->findUserByUsername($target->getUsername());
                     if(!empty($user)) {
                         $activity->setUser($user);
                     }
@@ -113,12 +158,10 @@ class ActivityBuilder {
                 $activity->setChangeRevisionId($lastRev->getRev());
                 $activity->setChangeRevisionRevType($targetCe->getRevisionType());
                 $activity->setChangedDate($lastRev->getTimestamp());
-                $this->em->persist($activity);
+                $this->getEM()->persist($activity);
             }
-        } catch(NoRevisionFoundException $e) {
-            if($this->output) {
-                $this->output->writeln("Couldn't compare: ". $currentRevision->getRev()." and ".$lastRev->getRev()." for ".$className." and obj ".$object->getId());
-            }
+        } catch(AuditException $e) {
+            throw new \LogicException("Couldn't compare: ". $currentRevision->getRev()." and ".$lastRev->getRev()." for ".$className." and obj ".$object->getId());
         }
     }
 

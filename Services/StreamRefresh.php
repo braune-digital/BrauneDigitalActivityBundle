@@ -13,6 +13,7 @@ use SimpleThings\EntityAudit\Exception\NoRevisionFoundException;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class StreamRefresh {
+
     const RELATIVE_CONFIG_PATH = '/../Resources/config/config.yml';
 
     /**
@@ -35,23 +36,10 @@ class StreamRefresh {
      */
     private $streamRepository;
 
-
-
-
     /*
      * @var SimpleThings\EntityAudit\AuditReader
      */
-    private $auditReader;
-
-    /*
-     * @var SimpleThings\EntityAudit\AuditConfiguration
-     */
-    private $auditConfig;
-
-    /*
-     * @var Metadata\MetadataFactory
-     */
-    private $mdFactory;
+    protected $auditReader;
 
     /*
      * @var \Doctrine\DBAL\Platforms\AbstractPlatform
@@ -63,9 +51,6 @@ class StreamRefresh {
      */
     private $output;
 
-
-
-
     public function __construct(EntityManager $em, ContainerInterface $container)
     {
         $this->em = $em;
@@ -73,8 +58,8 @@ class StreamRefresh {
         $this->activityRepository = $em->getRepository('BrauneDigital\ActivityBundle\Entity\Stream\Activity');
         $this->streamRepository = $em->getRepository('BrauneDigital\ActivityBundle\Entity\Stream\Stream');
 
-        $this->auditConfig = $container->get("simplethings_entityaudit.config");
-        $this->mdFactory = $this->auditConfig->createMetadataFactory();
+        $this->auditReader = $container->get('bd_activity.entityaudit.reader');
+
         $this->platform = $this->em->getConnection()->getDatabasePlatform();
 
         $this->activityBuilder = $this->getContainer()->get('bd_activity.activity_builder');
@@ -152,7 +137,7 @@ class StreamRefresh {
                     $lastRev = $currentRevision;
                 } else {
                     if(sizeof($revisions) > 1) {
-                        $this->activityBuilder->buildActivity($className, $object, $currentRevision, $lastRev);
+                        $this->activityBuilder->buildActivity($className, $object, null, $currentRevision, $lastRev);
                         --$this->buildLimit;
                         $lastRev = $currentRevision;
                     }
@@ -161,7 +146,7 @@ class StreamRefresh {
             }
         }
         if($checkCreateRevision && ! $this->activityRepository->getCreateRevision($className, $object)) {
-            $this->activityBuilder->buildActivity($className, $object, $checkCreateRevision , $checkCreateRevision);
+            $this->activityBuilder->buildActivity($className, $object, null, $checkCreateRevision);
             --$this->buildLimit;
         }
     }

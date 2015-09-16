@@ -21,6 +21,9 @@ class Configuration implements ConfigurationInterface
         $rootNode = $treeBuilder->root('braune_digital_activity');
         $rootNode
             ->children()
+                ->booleanNode('doctrine_subscribing')
+                    ->defaultFalse()
+                ->end()
                 ->arrayNode('observed_classes')
                     ->prototype('array')
                         ->children()

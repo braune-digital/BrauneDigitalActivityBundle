@@ -14,7 +14,7 @@ class StreamRepository extends \Doctrine\ORM\EntityRepository
         $streams  = $this->findAll();
 
         if(sizeof($streams) > 1) {
-            throw new Exception('In current state we assume a single stream exits. Multiple streams found!');
+            throw new \LogicException('In current state we assume a single stream exits. Multiple streams found!');
         } elseif (sizeof($streams) == 0) {
             $backendStream = new Stream();
             $em = $this->_em;

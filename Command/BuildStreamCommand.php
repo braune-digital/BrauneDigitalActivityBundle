@@ -13,12 +13,13 @@ class BuildStreamCommand extends ContainerAwareCommand{
 
     protected function configure()
     {
+
         $this
             ->setName('braunedigital:activity:buildstream')
             ->setDescription('Build the backend activity stream')
             ->addArgument(
                 BuildStreamCommand::ARGUMENT_NAME_BUILD_LIMIT,
-                InputArgument::OPTIONAL,
+                InputArgument::REQUIRED,
                 'How many activities do you want to generate?'
             )
         ;

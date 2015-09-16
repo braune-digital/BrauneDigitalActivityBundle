@@ -20,3 +20,13 @@ services:
         class:  BrauneDigital\ActivityBundle\Services\AuditReader
         factory: [@bd_activity.entityaudit.manager, createAuditReader]
         arguments: [@doctrine.orm.default_entity_manager]
+
+    bd_activity.activity_builder:
+        class:  BrauneDigital\ActivityBundle\Services\ActivityBuilder
+        arguments: [@service_container]
+
+    bd_activity.doctrine_subscriber:
+        class: BrauneDigital\ActivityBundle\EventListener\DoctrineSubscriber
+        arguments: ['@bd_activity.activity_builder']
+        tags:
+            - { name: doctrine.event_subscriber, priority: -1}
