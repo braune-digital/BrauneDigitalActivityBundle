@@ -197,10 +197,7 @@ class ActivityBuilder {
         }
         $activity->auditedObject = $auditedObject;
 
-        $activity->baseAudit = null;
-        $activity->changedAudit = null;
-
-        //add the versions to the activity to the revision
+        //add the revision versions to the activity
         try {
             $activity->changedAudit = $this->getAuditReader()->find(
                 $class,
@@ -214,9 +211,9 @@ class ActivityBuilder {
                 $activity->getBaseRevisionId()
             );
 
-        } catch(AuditException $e) {
-            $activity->baseAudit = null;
+        } catch(\Exception $e) {
             $activity->changedAudit = null;
+            $activity->baseAudit = null;
         }
     }
 
