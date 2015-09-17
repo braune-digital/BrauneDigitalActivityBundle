@@ -73,7 +73,7 @@ class ActivityBuilder {
 
     protected function getAuditReader() {
         if(!$this->auditReader) {
-            $this->auditReader = $this->getContainer()->get('simplethings_entityaudit.reader');
+            $this->auditReader = $this->getContainer()->get('bd_activity.entityaudit.reader');
         }
         return $this->auditReader;
     }
@@ -81,7 +81,7 @@ class ActivityBuilder {
     protected function getAuditManager() {
 
         if(!$this->auditManager) {
-            $this->auditManager = $this->getContainer()->get('simplethings_entityaudit.manager');
+            $this->auditManager = $this->getContainer()->get('sbd_activity.entityaudit.manager');
         }
         return $this->auditManager;
     }

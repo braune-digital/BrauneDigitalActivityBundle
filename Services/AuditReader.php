@@ -147,6 +147,7 @@ class AuditReader extends BaseAuditReader
      */
     public function __construct(EntityManager $em, AuditConfiguration $config, MetadataFactory $factory)
     {
+        parent::__construct($em, $config, $factory);
         $this->em = $em;
         $this->config = $config;
         $this->metadataFactory = $factory;
