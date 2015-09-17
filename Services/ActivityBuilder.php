@@ -186,9 +186,8 @@ class ActivityBuilder {
         foreach($this->entitiesToUpdate as $e) {
             $this->updateEntityAsClass($e['class'], $e['id']);
         }
-        if(count($this->entitiesToUpdate) > 0) {
-            $this->getEM()->flush();
-        }
+        $this->entitiesToUpdate = array();
+        $this->getEM()->flush();
     }
 
     public function onKernelTerminate(PostResponseEvent $event) {
@@ -210,10 +209,12 @@ class ActivityBuilder {
                 $lastRev = $currentRevision;
                 $ignoreChanges = true;
             }
-            $source = $this->getAuditReader()->find($className, $id, $currentRevision->getRev());
-            $sourceCe = $this->pickChangedEntity($id, $this->getAuditReader()->findEntitiesChangedAtRevision($currentRevision->getRev()));
-            $target = $this->getAuditReader()->find($className, $id, $lastRev->getRev());
-            $targetCe = $this->pickChangedEntity($id, $this->getAuditReader()->findEntitiesChangedAtRevision($lastRev->getRev()));
+            $source = $this->getAuditReader()->find($className, $id, $lastRev->getRev());
+            $sourceCe = $this->pickChangedEntity($id, $this->getAuditReader()->findEntitiesChangedAtRevision($lastRev->getRev()));
+
+            $target = $this->getAuditReader()->find($className, $id, $currentRevision->getRev());
+            $targetCe = $this->pickChangedEntity($id, $this->getAuditReader()->findEntitiesChangedAtRevision($currentRevision->getRev()));
+
             $changedFields = $this->getChangedFields($className, $source, $target);
 
             $activity->setChangedFields($changedFields);
@@ -230,11 +231,14 @@ class ActivityBuilder {
                     }
                 }
                 $activity->setAuditedEntityId($id);
-                $activity->setBaseRevisionId($currentRevision->getRev());
+                $activity->setBaseRevisionId($lastRev->getRev());
                 $activity->setBaseRevisionRevType($sourceCe->getRevisionType());
-                $activity->setChangeRevisionId($lastRev->getRev());
+
+                $activity->setChangeRevisionId($currentRevision->getRev());
                 $activity->setChangeRevisionRevType($targetCe->getRevisionType());
-                $activity->setChangedDate($lastRev->getTimestamp());
+
+                $activity->setChangedDate($currentRevision->getTimestamp());
+
                 $this->getEM()->persist($activity);
             }
         } catch(AuditException $e) {
