@@ -1,7 +1,5 @@
 services:
-    bd_activity.refresh_stream:
-        class: BrauneDigital\ActivityBundle\Services\StreamRefresh
-        arguments: [@doctrine.orm.entity_manager, @service_container]
+
     sonata.admin.bd.activity:
         class: BrauneDigital\ActivityBundle\Admin\ActivityAdmin
         tags:
@@ -12,9 +10,14 @@ services:
             - BrauneDigitalActivityBundle:ActivityCrud
         calls:
             - [ setTranslationDomain, [ApplicationAppBundle]]
+
     bd_activity.entityaudit.manager:
         class: BrauneDigital\ActivityBundle\Services\AuditManager
         arguments: [@simplethings_entityaudit.config]
+
+    bd_activity.refresh_stream:
+        class: BrauneDigital\ActivityBundle\Services\StreamRefresh
+        arguments: [@doctrine.orm.entity_manager, @service_container]
 
     bd_activity.entityaudit.reader:
         class:  BrauneDigital\ActivityBundle\Services\AuditReader
@@ -27,6 +30,6 @@ services:
 
     bd_activity.doctrine_subscriber:
         class: BrauneDigital\ActivityBundle\EventListener\DoctrineSubscriber
-        arguments: ['@bd_activity.activity_builder']
+        arguments: ['@bd_activity.activity_builder', '%doctrine_subscribing%']
         tags:
             - { name: doctrine.event_subscriber, priority: -1}

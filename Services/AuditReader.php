@@ -31,17 +31,14 @@ use Doctrine\ORM\PersistentCollection;
 use Doctrine\ORM\Query;
 use BrauneDigital\ActivityBundle\Utility\AuditedCollection;
 use SimpleThings\EntityAudit\AuditException;
-use SimpleThings\EntityAudit\Exception\DeletedException;
-use SimpleThings\EntityAudit\Exception\InvalidRevisionException;
-use SimpleThings\EntityAudit\Exception\NoRevisionFoundException;
-use SimpleThings\EntityAudit\Exception\NotAuditedException;
 use SimpleThings\EntityAudit\Metadata\MetadataFactory;
 use SimpleThings\EntityAudit\Utils\ArrayDiff;
 use SimpleThings\EntityAudit\AuditConfiguration;
 use SimpleThings\EntityAudit\Revision;
 use SimpleThings\EntityAudit\ChangedEntity;
+use SimpleThings\EntityAudit\AuditReader as BaseAuditReader;
 
-class AuditReader
+class AuditReader extends BaseAuditReader
 {
     private $em;
 
