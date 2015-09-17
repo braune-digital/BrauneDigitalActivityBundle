@@ -27,6 +27,8 @@ services:
     bd_activity.activity_builder:
         class:  BrauneDigital\ActivityBundle\Services\ActivityBuilder
         arguments: [@service_container]
+        tags:
+            - { name: kernel.event_listener, event: kernel.terminate, method: onKernelTerminate }
 
     bd_activity.doctrine_subscriber:
         class: BrauneDigital\ActivityBundle\EventListener\DoctrineSubscriber

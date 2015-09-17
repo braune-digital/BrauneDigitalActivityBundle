@@ -7,6 +7,7 @@ use Doctrine\ORM\Event\LifecycleEventArgs;
 use SimpleThings\EntityAudit\AuditException;
 use SimpleThings\EntityAudit\Metadata\MetadataFactory;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpKernel\Event\PostResponseEvent;
 
 class ActivityBuilder {
 
@@ -39,14 +40,13 @@ class ActivityBuilder {
     protected $useDoctrineSubscriber;
 
 
-    protected $entitiesMarkedForDeletion = array();
+    protected $entitiesToUpdate = array();
 
     protected $user;
 
     protected $userNotFound = false;
 
-
-
+    protected $isFlushing = false;
 
     public function __construct(ContainerInterface $container)
     {
@@ -81,7 +81,7 @@ class ActivityBuilder {
     protected function getAuditManager() {
 
         if(!$this->auditManager) {
-            $this->auditManager = $this->getContainer()->get('sbd_activity.entityaudit.manager');
+            $this->auditManager = $this->getContainer()->get('bd_activity.entityaudit.manager');
         }
         return $this->auditManager;
     }
@@ -131,7 +131,6 @@ class ActivityBuilder {
 
     public function supportsEntity($entity) {
 
-
         if(!is_string($entity)) {
             $className = get_class($entity);
         }
@@ -149,12 +148,18 @@ class ActivityBuilder {
         $this->updateEntity($entity);
     }
 
-    public function updateEntity($entity)
-    {
-        $this->updateEntityAsClass(get_class($entity), $entity->getId());
+    public function removeEntity($entity) {
+        $this->updateEntity($entity);
     }
 
-    public function updateEntityAsClass($class, $id) {
+    public function updateEntity($entity)
+    {
+        if($this->supportsEntity($entity)) {
+            array_push($this->entitiesToUpdate, array('class' => get_class($entity), 'id' => $entity->getId()));
+        }
+    }
+
+    protected function updateEntityAsClass($class, $id) {
 
         if($this->supportsEntity($class)) {
 
@@ -174,22 +179,20 @@ class ActivityBuilder {
             }
 
             $this->buildActivityId($class, $id, $this->getUser(), $curRev, $prevRev);
-            $this->getEM()->flush(); //save activity
         }
     }
 
-    public function markEntityForDeletion($entity) {
-        if($this->supportsEntity($entity)) {
-            array_push($this->entitiesMarkedForDeletion, array('class'=> get_class($entity), 'id' => $entity->getId()));
-        }
-    }
-
-    public function removeMarkedEntities() {
-
-        foreach($this->entitiesMarkedForDeletion as $e) {
+    public function updateEntities() {
+        foreach($this->entitiesToUpdate as $e) {
             $this->updateEntityAsClass($e['class'], $e['id']);
         }
-        $this->entitiesMarkedForDeletion = array();
+        if(count($this->entitiesToUpdate) > 0) {
+            $this->getEM()->flush();
+        }
+    }
+
+    public function onKernelTerminate(PostResponseEvent $event) {
+        $this->updateEntities();
     }
 
     public function buildActivity($className, $object, $user, $currentRevision, $lastRev = null) {

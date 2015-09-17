@@ -22,7 +22,7 @@ class DoctrineSubscriber implements EventSubscriber
             return array(Events::postLoad);
         }
         else {
-            return array(Events::postUpdate, Events::postPersist, Events::postLoad, Events::onFlush, Events::postFlush);
+            return array(Events::postUpdate, Events::postPersist, Events::postLoad, Events::preRemove);
         }
     }
 
@@ -36,18 +36,9 @@ class DoctrineSubscriber implements EventSubscriber
         $this->activityBuilder->persistEntity($args->getEntity());
     }
 
-    public function onFlush(OnFlushEventArgs $args)
+    public function preRemove(LifecycleEventArgs $args)
     {
-        $em = $args->getEntityManager();
-        $uow = $em->getUnitOfWork();
-
-        foreach ($uow->getScheduledEntityDeletions() AS $entity) {
-            $this->activityBuilder->markEntityForDeletion($entity);
-        }
-    }
-
-    public function postFlush(PostFlushEventArgs $args) {
-        $this->activityBuilder->removeMarkedEntities();
+        $this->activityBuilder->removeEntity($args->getEntity());
     }
 
     public function postLoad(LifecycleEventArgs $args)
