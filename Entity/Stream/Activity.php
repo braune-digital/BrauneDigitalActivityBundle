@@ -10,7 +10,6 @@ use Application\Sonata\UserBundle\Entity\User as User;
  *
  * @ORM\Table(name="bd_activity_activity")
  * @ORM\Entity(repositoryClass="BrauneDigital\ActivityBundle\Entity\Stream\ActivityRepository")
- * @ORM\EntityListeners({"BrauneDigital\ActivityBundle\EventListener\ActivityListener"})
  */
 class Activity
 {

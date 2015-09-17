@@ -117,7 +117,15 @@ class ActivityBuilder {
     public function update($entity)
     {
         if($this->useDoctrineSubscriber && $this->supportsEntity($entity)) {
-            $user = $this->getContainer()->get('security.token_storage')->getToken()->getUser();
+
+            $token = $this->getContainer()->get('security.token_storage')->getToken();
+
+            if($token) {
+                $user = $token->getUser();
+            } else {
+                $user = null;
+            }
+
 
             $revisions = $this->getAuditReader()->findRevisions(get_class($entity), $entity->getId());
 
@@ -174,6 +182,41 @@ class ActivityBuilder {
             }
         } catch(AuditException $e) {
             throw new \LogicException("Couldn't compare: ". $currentRevision->getRev()." and ".$lastRev->getRev()." for ".$className." and obj ".$object->getId());
+        }
+    }
+
+    public function postLoadActivity(Activity $activity) {
+
+        //add fields dynamically
+        $id = $activity->getAuditedEntityId();
+        $class = $activity->getObservedClass();
+        $repo = $this->getEM()->getRepository($class);
+        $auditedObject = null;
+        if($repo != null) {
+            $auditedObject =  $repo->findOneById($id);
+        }
+        $activity->auditedObject = $auditedObject;
+
+        $activity->baseAudit = null;
+        $activity->changedAudit = null;
+
+        //add the versions to the activity to the revision
+        try {
+            $activity->changedAudit = $this->getAuditReader()->find(
+                $class,
+                $activity->getAuditedEntityId(),
+                $activity->getChangeRevisionId()
+            );
+
+            $activity->baseAudit = $this->getAuditReader()->find(
+                $class,
+                $activity->getAuditedEntityId(),
+                $activity->getBaseRevisionId()
+            );
+
+        } catch(AuditException $e) {
+            $activity->baseAudit = null;
+            $activity->changedAudit = null;
         }
     }
 
