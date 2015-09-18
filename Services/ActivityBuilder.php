@@ -95,7 +95,7 @@ class ActivityBuilder {
 
     protected function getEM() {
         if(!$this->em) {
-            $this->em = $this->getContainer()->get('doctrine')->getEntityManager();
+            $this->em = $this->getContainer()->get('doctrine')->getManager();
         }
         return $this->em;
     }
