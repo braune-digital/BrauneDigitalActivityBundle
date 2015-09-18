@@ -177,7 +177,6 @@ class ActivityBuilder {
             if (isset($revisions[1])) {
                 $prevRev = $revisions[1];
             }
-
             $this->buildActivityId($class, $id, $this->getUser(), $curRev, $prevRev);
         }
     }
@@ -209,6 +208,7 @@ class ActivityBuilder {
                 $lastRev = $currentRevision;
                 $ignoreChanges = true;
             }
+
             $source = $this->getAuditReader()->find($className, $id, $lastRev->getRev());
             $sourceCe = $this->pickChangedEntity($id, $this->getAuditReader()->findEntitiesChangedAtRevision($lastRev->getRev()));
 
@@ -219,6 +219,11 @@ class ActivityBuilder {
 
             $activity->setChangedFields($changedFields);
             $activity->setObservedClass($className);
+
+            if($targetCe->getRevisionType() == 'DEL') {
+                $ignoreChanges = true;
+            }
+
             if($ignoreChanges || sizeof($changedFields) > 0) {
 
                 if($user != null) {
