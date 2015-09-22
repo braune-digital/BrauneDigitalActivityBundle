@@ -228,11 +228,13 @@ class ActivityBuilder {
 
                 if($user != null) {
                     $activity->setUser($user);
+                    $user->addActivity($activity);
                 }
                 else if (method_exists($target, 'getUsername')) {
                     $user = $this->getUserManager()->findUserByUsername($target->getUsername());
                     if(!empty($user)) {
                         $activity->setUser($user);
+                        $user->addActivity($activity);
                     }
                 }
                 $activity->setAuditedEntityId($id);
