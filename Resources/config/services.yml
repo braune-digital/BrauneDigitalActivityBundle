@@ -1,5 +1,4 @@
 services:
-
     sonata.admin.bd.activity:
         class: BrauneDigital\ActivityBundle\Admin\ActivityAdmin
         tags:
