@@ -13,7 +13,7 @@ Optional:
 ## Installation
 Install the bundle using composer:  
 ```
-composer require braune-digital/activity-bundle "~1.1"
+composer require braune-digital/activity-bundle "~1.2"
 ```  
 
 And enable the Bundle in your AppKernel:
@@ -27,4 +27,21 @@ public function registerBundles()
           new BrauneDigital\ActivityBundle\BrauneDigitalActivityBundle(),
           ...
         );
+```
+## Configuration
+```yaml
+braune_digital_activity:
+    doctrine_subscribing: true  #enable the direct creation of activities
+    observed_classes:           #array of classes that need to be watched
+        'AppBundle\Entity\TimedTask': #classname
+            fields:                           #watched fields
+              created: ~
+              title: ~
+              modified: ~
+        'Application\Ekas\AppBundle\Entity\Step': ~ # watch creation / deletion only
+        'AppBundle\Entity\TimedTask':
+            fields:
+                done: ~
+                title: ~
+                description: ~
 ```
