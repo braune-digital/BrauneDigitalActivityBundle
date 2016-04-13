@@ -45,3 +45,21 @@ braune_digital_activity:
                 title: ~
                 description: ~
 ```
+
+## Configure Entities
+Resolve UserInterface:  
+```yaml
+doctrine:
+    orm:
+        resolve_target_entities:
+            BrauneDigital\ActivityBundle\Model\UserInterface: Application\AppBundle\Entity\User
+```  
+  
+  Add Doctrine Relations to your User
+```php
+  oneToMany:
+      activities:
+          targetEntity: 'BrauneDigital\ActivityBundle\Entity\Stream\Activity'
+          mappedBy: user
+          cascade: ["persist", "remove"]
+```
