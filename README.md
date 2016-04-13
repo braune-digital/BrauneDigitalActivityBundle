@@ -1,5 +1,14 @@
 # BrauneDigitalActivityBundle
+This Bundle allows the creation of activities based on Entity-Audits.
+It also displays the activity in SonataAdmin.
 
+## Requirements
+Required:  
+* SimpleThingsEntityAuditBundle
+* DoctrineORM
+  
+Optional:
+* SonataAdminBundle
 ## Installation
 Install the bundle using composer:  
 ```
