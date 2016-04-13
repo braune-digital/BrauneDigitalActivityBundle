@@ -63,3 +63,8 @@ doctrine:
           mappedBy: user
           cascade: ["persist", "remove"]
 ```
+
+## Build a Stream using the consle
+```bash
+php app/console braunedigital:activity:buildstream
+```
