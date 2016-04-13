@@ -2,9 +2,8 @@
 
 namespace BrauneDigital\ActivityBundle\Entity\Stream;
 
+use BrauneDigital\ActivityBundle\Model\UserInterface;
 use Doctrine\ORM\Mapping as ORM;
-use Application\Sonata\UserBundle\Entity\User as User;
-
 /**
  * Activity
  *
@@ -48,7 +47,6 @@ class Activity
     private $observedClass;
 
     /**
-     * @var Application\Sonata\UserBundle\Entity\User
      *
      * @ORM\ManyToOne(targetEntity="BrauneDigital\ActivityBundle\Model\UserInterface", inversedBy="activities")
      * @ORM\JoinColumn(name="user_id", referencedColumnName="id")
@@ -237,7 +235,7 @@ class Activity
     }
 
     /**
-     * @return User
+     * @return UserInterface
      */
     public function getUser()
     {

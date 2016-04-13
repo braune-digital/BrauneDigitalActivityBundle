@@ -53,9 +53,7 @@ class ActivityBuilder {
         $this->container = $container;
 
         //load observed classes
-        foreach ($this->getContainer()->getParameter('observed_classes') as $observedClass) {
-            $this->observedClasses[] = $observedClass['name'];
-        }
+        $this->observedClasses = $this->getContainer()->getParameter('braune_digital_activity_observed_classes');
     }
 
     /**
@@ -141,7 +139,7 @@ class ActivityBuilder {
         if (!$this->getMetadataFactory()->isAudited($className)) {
             return false;
         }
-        return in_array($className, $this->getObservedClasses());
+        return array_key_exists($className, $this->getObservedClasses());
     }
 
     public function persistEntity($entity) {
@@ -289,8 +287,7 @@ class ActivityBuilder {
         $observedFields = $this->getFieldsForClass($className);
         $changedFields = array();
 
-        foreach($observedFields as $observedField) {
-            $observedField = $observedField['fieldName'];
+        foreach($observedFields as $observedField => $fieldData) {
             $getter = 'get'.ucwords($observedField);
 
             $sourceValue = call_user_func(array($source, $getter));
@@ -346,11 +343,7 @@ class ActivityBuilder {
      * @return array
      */
     protected function getFieldsForClass($className) {
-        foreach($this->getContainer()->getParameter('observed_classes') as $observedClass) {
-            if($observedClass['name'] == $className) {
-                return $observedClass['fields'];
-            }
-        }
+        return $this->observedClasses[$className]['fields'];
     }
 
     /**

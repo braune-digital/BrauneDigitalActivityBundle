@@ -1,29 +1,14 @@
-#braune_digital_activity:
-#    observed_classes:
-#        -   name: Application\Sonata\UserBundle\Entity\User
-#            fields:
-#                - fieldName: picture
-#                - fieldName: username
-#                - fieldName: lastLogin
-#        -   name: Application\AppBundle\Entity\Offer
-#            fields:
-#                - fieldName: icon
-#                - fieldName: email
-#        -   name: Application\AppBundle\Entity\OfferTranslation
-#            fields:
-#                - fieldName: title
-#                - fieldName: description
-#                - fieldName: url
-#                - fieldName: bookingUrl
-#        -   name: Application\AppBundle\Entity\Provider
-#            fields:
-#                - fieldName: title
-#                - fieldName: logo
-#                - fieldName: email
-#                - fieldName: url
-#                - fieldName: facebookUrl
-#                - fieldName: twitterUrl
-#                - fieldName: googlePlusUrl
-#        -   name: Application\AppBundle\Entity\ProviderTranslation
-#            fields:
-#                - fieldName: description
+braune_digital_activity:
+    doctrine_subscribing: true  #enable the direct creation of activities
+    observed_classes:           #array of classes that need to be watched
+        'AppBundle\Entity\TimedTask': #classname
+            fields:                           #watched fields
+              created: ~
+              title: ~
+              modified: ~
+        'Application\Ekas\AppBundle\Entity\Step': ~ # watch creation / deletion only
+        'AppBundle\Entity\TimedTask':
+            fields:
+                done: ~
+                title: ~
+                description: ~

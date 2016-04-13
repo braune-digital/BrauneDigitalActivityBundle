@@ -1,37 +1,45 @@
+parameters:
+    braune_digital.activity.doctrine_subscriber.priority: -1
+    braune_digital.activity.doctrine_subscriber.class: 'BrauneDigital\ActivityBundle\EventListener\DoctrineSubscriber'
+    braune_digital.activity.activity_builder.class: 'BrauneDigital\ActivityBundle\Services\ActivityBuilder'
+    braune_digital.activity.activity_builder.priority: -1
+    braune_digital.activity.entityaudit.reader.class: 'BrauneDigital\ActivityBundle\Services\AuditReader'
+    braune_digital.activity.refresh_stream.class: 'BrauneDigital\ActivityBundle\Services\StreamRefresh'
+    braune_digital.activity.entityaudit.manager.class: 'BrauneDigital\ActivityBundle\Services\AuditManager'
+    braune_digital.activity.admin.class: 'BrauneDigital\ActivityBundle\Admin\ActivityAdmin'
 services:
-
     sonata.admin.bd.activity:
-        class: BrauneDigital\ActivityBundle\Admin\ActivityAdmin
+        class: '%braune_digital.activity.admin.class%'
         tags:
             - { name: sonata.admin, manager_type: orm, group: "Activity", label: "Activities" }
         arguments:
             - ~
-            - BrauneDigital\ActivityBundle\Entity\Stream\Activity
-            - BrauneDigitalActivityBundle:ActivityCrud
+            - 'BrauneDigital\ActivityBundle\Entity\Stream\Activity'
+            - 'BrauneDigitalActivityBundle:ActivityCrud'
         calls:
             - [ setTranslationDomain, [ApplicationAppBundle]]
 
     bd_activity.entityaudit.manager:
-        class: BrauneDigital\ActivityBundle\Services\AuditManager
-        arguments: [@simplethings_entityaudit.config]
+        class: '%braune_digital.activity.entityaudit.manager.class%'
+        arguments: ['@simplethings_entityaudit.config']
 
     bd_activity.refresh_stream:
-        class: BrauneDigital\ActivityBundle\Services\StreamRefresh
-        arguments: [@doctrine.orm.entity_manager, @service_container]
+        class: '%braune_digital.activity.refresh_stream.class%'
+        arguments: ['@doctrine.orm.entity_manager', '@service_container']
 
     bd_activity.entityaudit.reader:
-        class:  BrauneDigital\ActivityBundle\Services\AuditReader
-        factory: [@bd_activity.entityaudit.manager, createAuditReader]
-        arguments: [@doctrine.orm.default_entity_manager]
+        class: '%braune_digital.activity.entityaudit.reader.class%'
+        factory: ['@bd_activity.entityaudit.manager', 'createAuditReader']
+        arguments: ['@doctrine.orm.default_entity_manager']
 
     bd_activity.activity_builder:
-        class:  BrauneDigital\ActivityBundle\Services\ActivityBuilder
-        arguments: [@service_container]
+        class: '%braune_digital.activity.activity_builder.class%'
+        arguments: ['@service_container']
         tags:
-            - { name: kernel.event_listener, event: kernel.terminate, method: onKernelTerminate, priority: -1}
+            - { name: kernel.event_listener, event: kernel.terminate, method: onKernelTerminate, priority: '%braune_digital.activity.activity_builder.priority%'}
 
     bd_activity.doctrine_subscriber:
-        class: BrauneDigital\ActivityBundle\EventListener\DoctrineSubscriber
-        arguments: ['@bd_activity.activity_builder', '%doctrine_subscribing%']
+        class: '%braune_digital.activity.doctrine_subscriber.class%'
+        arguments: ['@bd_activity.activity_builder', '%braune_digital_activity_doctrine_subscribing%']
         tags:
-            - { name: doctrine.event_subscriber, priority: -1}
+            - { name: doctrine.event_subscriber, priority: '%braune_digital.activity.doctrine_subscriber.priority%'}

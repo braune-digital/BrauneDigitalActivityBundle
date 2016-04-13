@@ -88,9 +88,9 @@ class StreamRefresh {
 
         $observedClasses = $this->activityBuilder->getObservedClasses();
 
-        foreach($observedClasses as $observedClass) {
-            if($this->refreshRequired($observedClass)) {
-                $this->refreshStreamForClass($observedClass);
+        foreach($observedClasses as $class => $observedClass) {
+            if($this->refreshRequired($class)) {
+                $this->refreshStreamForClass($class);
             }
         }
     }
