@@ -13,15 +13,13 @@
         "MIT"
     ],
     "require" : {
+        "simplethings/entity-audit-bundle": "~0.7@dev"
     },
     "autoload" : {
         "psr-4" : {
             "BrauneDigital\\ActivityBundle\\" : ""
         }
     },
-    "repositories" : [{
-    	
-    }],
     "extra" : {
     "branch-alias" : {
             "1.0.x" : "1.0.x-dev"
