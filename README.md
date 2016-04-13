@@ -9,6 +9,7 @@ Required:
   
 Optional:
 * SonataAdminBundle  
+  
 ## Installation
 Install the bundle using composer:  
 ```
