@@ -8,7 +8,7 @@ Required:
 * DoctrineORM
   
 Optional:
-* SonataAdminBundle
+* SonataAdminBundle  
 ## Installation
 Install the bundle using composer:  
 ```
