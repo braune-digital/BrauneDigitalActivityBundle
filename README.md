@@ -68,3 +68,6 @@ doctrine:
 ```bash
 php app/console braunedigital:activity:buildstream
 ```
+
+## TODO
+* Add Usage-Section in Readme
