@@ -11,9 +11,14 @@ Optional:
 * SonataAdminBundle  
   
 ## Installation
-Install the bundle using composer:  
+For `SimpleThingsEntityAuditBundle < 1.0.6` install the the bundle using composer:  
 ```
 composer require braune-digital/activity-bundle "~1.2"
+```
+  
+For `SimpleThingsEntityAuditBundle >= 1.0.6` install the the bundle with:  
+```
+composer require braune-digital/activity-bundle "~1.3"
 ```  
 
 And enable the Bundle in your AppKernel:
