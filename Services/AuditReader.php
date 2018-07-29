@@ -138,7 +138,7 @@ class AuditReader extends BaseAuditReader
             throw new NoRevisionFoundException($class->name, $id, $revision);
         }
 
-        if ($options['threatDeletionsAsExceptions'] && $row[$this->config->getRevisionTypeFieldName()] == 'DEL') {
+        if (isset($options['threatDeletionsAsExceptions']) && $row[$this->config->getRevisionTypeFieldName()] == 'DEL') {
             throw new DeletedException($class->name, $id, $revision);
         }
         return $this->createEntity($class->name, $row);
